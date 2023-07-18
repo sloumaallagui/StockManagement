@@ -15,55 +15,81 @@ import xlwt
 # ***************************** Group apis ***************************
 # add a new group
 
+
+
+
 import xlwt
 
+
+import xlwt
+
+import xlwt
+
+import xlwt
+@csrf_exempt
 def export(request):
     response = HttpResponse(content_type='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename="groups.xls"'
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet('Groups')
     row_num = 0
-    font_style = xlwt.XFStyle()
-    font_style.font.bold = True
-    columns = ['Group', 'Product', 'Base']
     
-    for col_num in range(len(columns)):
-        ws.write(row_num, col_num, columns[col_num], font_style)
+    # Define formatting styles
+    header_font_style = xlwt.easyxf('font: bold on; align: wrap on, vert centre, horiz center')
+    data_font_style = xlwt.XFStyle()
+    data_font_style.alignment.wrap = True
+    
+    columns = ['Groupe', 'Produit', 'Produit Ref', 'Produit Quantité', 'Matière première', 'Stock1', 'Stock2', 'Stock3','Bases']
+    
+    for col_num, column_title in enumerate(columns):
+        ws.write(row_num, col_num, column_title, header_font_style)
+        ws.col(col_num).width = 6000  # Set column width for headers
     
     groups = Group.objects.all()
     for group in groups:
-        row_num += 1
-        ws.write(row_num, 0, group.name, font_style)
         products = Product.objects.filter(group=group.id)
+        
+        # Loop through products and primaries
         for product in products:
-            row_num += 1
-            ws.write(row_num, 1, "Nom:", font_style)
-            ws.write(row_num, 2, product.name, font_style)
-            ws.write(row_num, 3, "Ref:", font_style)
-            ws.write(row_num, 4, product.ref, font_style)
-            ws.write(row_num, 5, "Quantité:", font_style)
-            ws.write(row_num, 6, product.quantity, font_style)
-            ws.write(row_num, 7, "Matière première:", font_style)
             primaries = Primary.objects.filter(product=product.id)
             for primary in primaries:
                 row_num += 1
-                ws.write(row_num, 7, "Nom:", font_style)
-                ws.write(row_num, 8, primary.name, font_style)
-                ws.write(row_num, 9, "Stock1:", font_style)
-                ws.write(row_num, 10, primary.stock1, font_style)
-                ws.write(row_num, 11, "Stock2:", font_style)
-                ws.write(row_num, 12, primary.stock2, font_style)
-                ws.write(row_num, 13, "Stock3:", font_style)
-                ws.write(row_num, 14, primary.stock3, font_style)
-        ws.write(row_num, 15, "Bases:", font_style)
+                # Write the group name, product info, and primary info
+                ws.write(row_num, 0, group.name, data_font_style)
+                ws.write(row_num, 1, product.name, data_font_style)
+                ws.write(row_num, 2, product.ref, data_font_style)
+                ws.write(row_num, 3, product.quantity, data_font_style)
+                ws.write(row_num, 4, primary.name, data_font_style)
+                ws.write(row_num, 5, primary.stock1, data_font_style)
+                ws.write(row_num, 6, primary.stock2, data_font_style)
+                ws.write(row_num, 7, primary.stock3, data_font_style)
+                ws.write(row_num, 8, "", data_font_style)  # Leave base column empty for now (to be filled later)
+        
         bases = Base.objects.filter(group=group.id)
+        # Loop through bases and write the base info
         for base in bases:
             row_num += 1
-            ws.write(row_num, 15, "Base Nom:", font_style)
-            ws.write(row_num, 16, base.name, font_style)
+            ws.write(row_num, 0, group.name, data_font_style)
+            ws.write(row_num, 1, "", data_font_style)  # Empty cells for product info
+            ws.write(row_num, 2, "", data_font_style)
+            ws.write(row_num, 3, "", data_font_style)
+            ws.write(row_num, 4, "", data_font_style)  # Empty cell for primary info
+            ws.write(row_num, 5, "", data_font_style)
+            ws.write(row_num, 6, "", data_font_style)
+            ws.write(row_num, 7, "", data_font_style)
+            ws.write(row_num, 8, base.name, data_font_style)  # Write the base info
     
     wb.save(response)
+    # set file name and content-type
+    response['Content-Disposition'] = 'attachment; filename="groups.xls"'
+    response['Content-Type'] = 'application/ms-excel'
+    
     return response
+
+
+
+
+
 
 
  
